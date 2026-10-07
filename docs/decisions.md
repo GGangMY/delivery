@@ -17,6 +17,7 @@
 | D-05 | 결제 수단: CARD만 정의 | 채택 | 2026-10-07 |
 | D-06 | JPA Auditing 선언 위치: 메인 클래스 | 채택 | 2026-10-07 |
 | D-07 | 주문 총액: Order 엔티티 생성 시 계산 | 채택 | 2026-10-07 |
+| D-08 | PasswordEncoder를 별도 설정 클래스로 분리 | 채택 | 2026-10-07 |
 
 ---
 
@@ -89,3 +90,13 @@
 - **유지**: D-04의 핵심(클라이언트 금액을 받지 않고, 서버가 DB의 메뉴 가격으로 계산해 주문 시점 값을 저장)은 그대로다.
 - **재검토**: 쿠폰·배달비처럼 계산에 다른 Repository나 외부 정보가 필요해지면 Service에서 계산하는 방식으로 다시 검토한다.
 - **변경**: `erd.md` 테이블 명세서의 `total_price` 설명을 "주문 생성 시 Service에서 계산" → "주문 생성 시 Order 엔티티에서 계산"으로 수정했다.
+
+### D-08. PasswordEncoder를 별도 설정 클래스로 분리
+`채택` · 2026-10-07
+
+- **고민**: `PasswordEncoder` 빈을 `SecurityConfig` 안에 둘지, `PasswordConfig`로 뺄지
+- **결정**: `global/config/PasswordConfig`에 두고, 반환 타입은 인터페이스(`PasswordEncoder`)로 한다.
+- **이유**
+  - 이후 `SecurityConfig`가 JWT 필터를, 필터가 회원 조회를, 회원 쪽이 `PasswordEncoder`를 필요로 하면 순환 참조가 생길 수 있다.
+  - `SecurityConfig`는 요청 허용·차단 규칙, `PasswordEncoder`는 회원가입·로그인 로직에서 쓰는 도구로 역할이 다르다.
+  - 반환 타입을 인터페이스로 두면 암호화 방식을 바꿀 때 이 한 줄만 고치면 된다.
