@@ -1,5 +1,6 @@
 package com.example.delivery.payment.entity;
 
+import com.example.delivery.global.entity.BaseEntity;
 import com.example.delivery.order.entity.Order;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "payments")
 @NoArgsConstructor
-public class Payment {
+public class Payment extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

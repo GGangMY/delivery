@@ -1,5 +1,6 @@
 package com.example.delivery.order.entity;
 
+import com.example.delivery.global.entity.BaseEntity;
 import com.example.delivery.menu.entity.Menu;
 import com.example.delivery.user.entity.User;
 import jakarta.persistence.*;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Table(name = "orders")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Order {
+public class Order extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
