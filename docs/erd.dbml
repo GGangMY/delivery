@@ -1,0 +1,71 @@
+Enum user_role {
+  CUSTOMER
+  OWNER
+}
+
+Enum order_status {
+  ORDERED
+  PAID
+  ACCEPTED
+  COMPLETED
+  CANCELED
+}
+
+Enum payment_method {
+  CARD
+}
+
+Enum payment_status {
+  COMPLETED
+  CANCELED
+}
+
+Table users {
+  id bigint [pk, increment]
+
+  username varchar(20) [not null, unique, note: '4~20자, DTO에서 검증']
+  password varchar(255) [not null, note: 'BCrypt 암호화 단방향 해시']
+  role user_role [not null, note: 'CUSTOMER / OWNER']
+
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table menus {
+  id bigint [pk, increment]
+  owner_id bigint [not null, ref: > users.id]
+
+  name varchar(255) [not null]
+  price bigint [not null, note: '1원 이상']
+  description varchar(255)
+  is_deleted boolean [not null, default: false]
+
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table orders {
+  id bigint [pk, increment]
+  menu_id bigint [not null, ref: > menus.id]
+  customer_id bigint [not null, ref: > users.id]
+
+  quantity bigint [not null, note: '1개 이상']
+  total_price bigint [not null]
+  address varchar(255) [not null]
+  status order_status [not null, default: 'ORDERED']
+
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table payments {
+  id bigint [pk, increment]
+  order_id bigint [not null, ref: > orders.id]
+
+  amount bigint [not null, note: '결제 시 주문 총액을 서버가 복사']
+  method payment_method [not null, default: 'CARD']
+  status payment_status [not null]
+
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
