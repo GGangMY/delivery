@@ -20,7 +20,7 @@ public class Payment extends BaseEntity {
 
     @Column(name = "method", nullable = false)
     @Enumerated(EnumType.STRING)
-    private PaymentMethod method;
+    private PaymentMethod method = PaymentMethod.CARD;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -29,4 +29,11 @@ public class Payment extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
+
+    public Payment(Order order) {
+        this.order = order;
+        this.amount = order.getTotalPrice();
+        this.status = PaymentStatus.CANCELED;
+    }
+
 }

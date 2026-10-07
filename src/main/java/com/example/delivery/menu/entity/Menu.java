@@ -31,4 +31,12 @@ public class Menu extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+
+    public Menu(User owner, String name, Long price, String description) {
+        this.owner = owner;
+        this.name = name;
+        this.price = price;
+        this.description = description;
+    }
+
 }
