@@ -49,7 +49,7 @@
 | 6 | 메뉴 수정 | `PUT /api/menus/{menuId}` | OWNER (본인 메뉴) | 200 |
 | 7 | 메뉴 삭제 | `DELETE /api/menus/{menuId}` | OWNER (본인 메뉴) | 204 |
 | 8 | 주문 생성 | `POST /api/orders` | CUSTOMER | 201 |
-| 9 | 주문 목록 조회 | `GET /api/orders` | 로그인한 사용자 | 200 |
+| 9 | 주문 목록 조회 | `GET /api/orders` | 로그인한 사용자 (역할별로 다른 목록) | 200 |
 | 10 | 주문 취소 | `PATCH /api/orders/{orderId}/cancel` | CUSTOMER (본인 주문) | 200 |
 | 11 | 주문 상태 변경 | `PATCH /api/orders/{orderId}/status` | OWNER (본인 메뉴 주문) | 200 |
 | 12 | 결제 | `POST /api/orders/{orderId}/payments` | CUSTOMER (본인 주문) | 201 |
