@@ -28,7 +28,7 @@ public class Order extends BaseEntity {
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private OrderStatus status = OrderStatus.ORDERED;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_id", nullable = false)
@@ -37,4 +37,13 @@ public class Order extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
+
+    public Order(Menu menu, User customer, Long quantity, String address) {
+        this.menu = menu;
+        this.customer = customer;
+        this.quantity = quantity;
+        this.totalPrice = menu.getPrice() * quantity;
+        this.address = address;
+    }
+
 }
