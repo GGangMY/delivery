@@ -48,5 +48,11 @@ ORDERED →(손님 취소, 결제 전만)→ CANCELED
 - JWT API이므로 CSRF는 disable.
 - enum 값 추가 시 ddl-auto: update는 CHECK 제약을 안 고친다 → 한 번 create로 재생성.
 
-## 커밋 메시지
-`타입: 내용` 형식, 한국어. 타입은 feat / fix / refactor / chore / docs / test.
+## 커밋 규칙
+- 커밋과 push는 내가 직접 터미널에서 한다. 요청하지 않으면 git commit, git push를 실행하지 마.
+- 커밋 메시지를 요청하면 실제 변경 내용(git diff)을 보고 추천해줘.
+- 형식: `타입: 내용` (한국어). 타입은 feat / fix / refactor / chore / docs / test.
+  - 예: `feat: 회원가입 API 구현`, `fix: Security 설정에서 /error 경로 허용`
+- 커밋은 작은 단위로. 여러 기능이 섞인 변경이면 나눠서 커밋하자고 알려줘.
+- 커밋 메시지에 Co-Authored-By 같은 AI 표시를 넣지 마.
+- 실제 비밀번호, JWT 비밀키가 커밋에 포함되려 하면 경고해줘.
