@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: delivery
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/delivery
+    username: delivery
+    password: delivery1234
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
