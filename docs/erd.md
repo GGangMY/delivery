@@ -38,7 +38,7 @@
 | `menu_id` | BIGINT | NOT NULL, FK → `menus(id)` | 주문한 메뉴 |
 | `customer_id` | BIGINT | NOT NULL, FK → `users(id)` | 주문한 손님 (토큰에서 꺼냄) |
 | `quantity` | BIGINT | NOT NULL | 수량 (1개 이상, DTO에서 검증) |
-| `total_price` | BIGINT | NOT NULL | 총액 = 메뉴 가격 × 수량. 주문 생성 시 Service에서 계산해 저장 |
+| `total_price` | BIGINT | NOT NULL | 총액 = 메뉴 가격 × 수량. 주문 생성 시 Order 엔티티에서 계산해 저장 |
 | `address` | VARCHAR(255) | NOT NULL | 배송 주소 |
 | `status` | VARCHAR | NOT NULL | 주문 상태: `ORDERED`, `PAID`, `ACCEPTED`, `COMPLETED`, `CANCELED` (문자열 저장). 생성 시 `ORDERED` |
 | `created_at` | TIMESTAMP | NOT NULL | 생성 시각 (JPA Auditing) |
