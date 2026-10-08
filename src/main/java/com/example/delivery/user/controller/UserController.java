@@ -1,6 +1,8 @@
 package com.example.delivery.user.controller;
 
+import com.example.delivery.user.dto.request.LoginRequest;
 import com.example.delivery.user.dto.request.SignupRequest;
+import com.example.delivery.user.dto.response.TokenResponse;
 import com.example.delivery.user.dto.response.UserResponse;
 import com.example.delivery.user.service.UserService;
 import jakarta.validation.Valid;
@@ -25,5 +27,9 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
     }
 
-
+    @PostMapping("/auth/login")
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+        TokenResponse tokenResponse = userService.login(loginRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(tokenResponse);
+    }
 }

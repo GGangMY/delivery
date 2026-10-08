@@ -15,8 +15,10 @@ import java.util.Date;
 @Slf4j
 @Component
 public class JwtUtil {
+
+    public static final String TOKEN_TYPE = "Bearer";
+    private static final String BEARER_PREFIX = TOKEN_TYPE + " ";
     private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
     private static final String ROLE_KEY = "role";
 
     private final SecretKey key;
