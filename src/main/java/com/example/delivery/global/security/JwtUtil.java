@@ -18,7 +18,6 @@ public class JwtUtil {
 
     public static final String TOKEN_TYPE = "Bearer";
     private static final String BEARER_PREFIX = TOKEN_TYPE + " ";
-    private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String ROLE_KEY = "role";
 
     private final SecretKey key;
@@ -67,6 +66,13 @@ public class JwtUtil {
 
     public UserRole getRole(String token) {
         return UserRole.valueOf(parseClaims(token).get(ROLE_KEY, String.class));
+    }
+
+    public String resolveToken(String header) {
+        if (header != null && header.startsWith(BEARER_PREFIX)) {
+            return header.substring(BEARER_PREFIX.length());
+        }
+        return null;
     }
 
     private Claims parseClaims(String token) {
