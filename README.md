@@ -109,7 +109,27 @@ docker run --name delivery-db \
 
 이후에는 `docker start delivery-db`로 켭니다.
 
-**2. 애플리케이션 실행**
+**2. JWT 비밀키 환경변수 등록 (처음 한 번)**
+
+토큰 서명에 쓰는 비밀키를 환경변수 `JWT_SECRET`으로 등록합니다. 비밀키는 저장소에 포함하지 않으며, 등록하지 않으면 애플리케이션이 시작되지 않습니다.
+값은 디코딩했을 때 32바이트 이상인 Base64 문자열이어야 합니다(HS256).
+
+Windows (PowerShell)
+
+```powershell
+$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
+setx JWT_SECRET "위에서_출력된_값"
+```
+
+macOS / Linux
+
+```bash
+echo "export JWT_SECRET=$(openssl rand -base64 32)" >> ~/.zshrc   # bash라면 ~/.bashrc
+```
+
+등록 후 터미널과 IDE를 **완전히 종료했다가 다시 실행**해야 적용됩니다.
+
+**3. 애플리케이션 실행**
 
 ```bash
 ./gradlew bootRun

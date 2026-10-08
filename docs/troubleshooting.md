@@ -13,6 +13,7 @@
 | --- | --- | --- | --- |
 | T-01 | git 커밋 시 LF → CRLF 변환 경고 | 해결 | 2026-10-07 |
 | T-02 | 서명 없는 토큰(alg:none)이 validateToken에서 false가 아니라 예외로 빠져나감 | 해결 | 2026-10-08 |
+| T-03 | JWT_SECRET을 실행 설정에 넣었는데 앱이 뜨지 않음 | 해결 | 2026-10-08 |
 
 ---
 
@@ -66,3 +67,35 @@
   - 목록 밖의 JJWT 예외가 같은 문제를 일으키지 않도록, 마지막에 `catch (JwtException e)`를 안전망으로 추가.
   - catch를 JJWT의 검사 순서(입력 → 형식 → 서명 여부 → 서명 일치 → 만료)대로 정리하고, 원인별 로그 문구를 넣음.
   - `JwtUtilTest` 11개 모두 통과.
+
+### T-03. JWT_SECRET을 실행 설정에 넣었는데 앱이 뜨지 않음
+`해결` · 2026-10-08
+
+- **증상**
+  - IntelliJ에서 `DeliveryApplication`을 실행하자 앱이 뜨지 않았다. 이전에 실행 설정(Run Configuration)의 Environment variables에 `JWT_SECRET`을 넣어 두었는데도 실패했다.
+  - 같은 원인으로 `contextLoads`, `EntityMappingTest`처럼 JWT와 무관한 테스트도 실패했다.
+  ```
+  UnsatisfiedDependencyException: Error creating bean with name 'securityConfig' ... constructor parameter 0
+  Caused by: BeanCreationException: Error creating bean with name 'jwtUtil'
+  Caused by: PlaceholderResolutionException: Could not resolve placeholder 'JWT_SECRET' in value "${JWT_SECRET}" <-- "${jwt.secret}"
+  ```
+- **원인 분석**
+  - `Caused by`를 아래부터 읽으면: `${JWT_SECRET}` 값을 찾지 못함 → `jwtUtil` 빈 생성 실패 → 생성자로 `JwtUtil`을 받는 `securityConfig`도 실패 → 빈 하나가 실패해 애플리케이션 컨텍스트 전체가 뜨지 못함.
+  - 무관한 테스트가 실패한 것도 같은 이유다. `@SpringBootTest`는 전체 컨텍스트를 띄우므로 `jwtUtil` 하나가 실패하면 함께 실패한다.
+  - 실행 설정에 넣은 값이 사라진 이유: `.idea/workspace.xml`을 확인하니 실행 설정이 모두 `temporary="true"`였다. 클래스·테스트 옆 ▶ 버튼으로 실행하면 IntelliJ가 **임시 실행 설정**을 만드는데, 개수 제한(기본 5개)을 넘으면 오래된 것부터 자동 삭제된다. 테스트를 여러 번 새로 실행하면서 기존 `DeliveryApplication` 설정이 밀려났고, 다시 ▶로 실행하자 환경변수가 없는 새 임시 설정이 만들어졌다.
+  - 실행 설정의 환경변수는 설정마다 따로 저장되기 때문에, 새 테스트 클래스를 실행할 때마다 다시 넣어야 하는 문제도 있었다.
+- **해결 방안**
+  - A. 실행 설정을 영구 저장(Save Configuration)하고 환경변수를 넣는다.
+  - B. Windows 사용자 환경변수로 등록한다(`setx JWT_SECRET "값"`).
+  - C. `application.yml`에 기본값을 둔다(`${JWT_SECRET:기본값}`).
+  - D. `application-local.yml`에 값을 넣고 `.gitignore`에 추가한다.
+- **결정 이유**: B를 선택했다.
+  - A는 IntelliJ 실행에만 적용되고 터미널의 `gradlew bootRun`, `gradlew test`에는 적용되지 않는다. 테스트 실행 설정마다 반복해서 넣어야 한다.
+  - B는 실행 방식(IntelliJ, 터미널, 테스트)과 실행 설정 삭제 여부에 상관없이 항상 적용된다.
+  - C는 기본값이 곧 비밀키가 되어 GitHub에 올라간다. 과제 요구사항(비밀키를 GitHub에 올리지 않음)에 어긋난다.
+  - D는 안전하지만 파일 관리와 프로파일 설정이 늘어난다. 개인 PC 하나에서 진행하는 과제에는 B로 충분하다.
+  - **적용**
+    - 32바이트 랜덤 값을 Base64로 만들어 `setx JWT_SECRET "값"`으로 등록.
+    - `setx`는 이미 실행 중인 프로그램에 반영되지 않으므로 IntelliJ를 완전히 종료 후 재시작.
+    - IntelliJ에서 앱 구동 확인.
+- **주의**: 다른 PC에서 clone해 실행하려면 같은 환경변수 등록이 필요하다. README 실행 방법에 이 단계를 추가해야 한다.
