@@ -12,6 +12,7 @@
 | 번호 | 제목 | 상태 | 날짜 |
 | --- | --- | --- | --- |
 | T-01 | git 커밋 시 LF → CRLF 변환 경고 | 해결 | 2026-10-07 |
+| T-02 | 서명 없는 토큰(alg:none)이 validateToken에서 false가 아니라 예외로 빠져나감 | 해결 | 2026-10-08 |
 
 ---
 
@@ -38,3 +39,30 @@
     - `.gitattributes` 맨 위에 `* text=auto eol=lf` 추가.
     - Windows 전용인 `*.bat`은 기존 규칙(`eol=crlf`)을 유지.
     - `git add --renormalize .` 로 기존 파일에 새 규칙을 적용 (이미 LF라 바뀐 파일 없음).
+
+### T-02. 서명 없는 토큰(alg:none)이 validateToken에서 false가 아니라 예외로 빠져나감
+`해결` · 2026-10-08
+
+- **증상**: `JwtUtilTest`의 "잘못된 토큰은 예외 없이 false" 8개 케이스 중 `서명 없는 토큰 (alg:none)`만 실패했다. `false`가 반환되지 않고 예외가 테스트까지 올라왔다.
+  ```
+  io.jsonwebtoken.UnsupportedJwtException: Unsecured JWSs (those with an 'alg' (Algorithm) header value of 'none') are disallowed by default ...
+  ```
+- **원인 분석**
+  - 서명 부분을 비우고 header를 `{"alg":"none"}`으로 바꾼 토큰은, 서명 검증을 건너뛰게 만들려는 대표적인 공격 형태다.
+  - `parseSignedClaims()`는 서명된 토큰만 받기 때문에 이런 토큰을 `UnsupportedJwtException`으로 거절한다. 즉 라이브러리는 막아주고 있었다.
+  - 문제는 `validateToken`의 catch 목록(`Expired`, `Signature`, `Malformed`, `IllegalArgument`)에 `UnsupportedJwtException`이 없었던 것. 잡히지 않은 예외가 `validateToken` 밖으로 던져졌다.
+  - 이대로 필터에 연결하면, 이 토큰을 붙인 요청은 403이 아니라 **500**이 된다. 필터에서 난 예외는 컨트롤러 앞단이라 처리되지 않기 때문이다. 토큰이 필요 없는 메뉴 목록 조회도 이 토큰을 붙이면 500이 난다.
+  - 기존 테스트는 `alg:none` 케이스를 `parseClaims`(예외를 던지는 쪽)로만 확인했고, `validateToken`(false를 돌려줘야 하는 쪽)으로는 확인하지 않아서 놓쳤다.
+- **해결 방안**
+  - A. `UnsupportedJwtException` catch를 따로 추가한다.
+  - B. 공통 부모인 `JwtException` 하나로 묶어서 잡는다.
+  - C. `Exception`으로 전부 잡는다.
+- **결정 이유**: A를 선택했다.
+  - 기존 catch가 원인별로 나뉘어 있어, 같은 방식으로 추가하면 로그만 보고도 "서명 없는 토큰이 들어왔다"는 걸 알 수 있다. 위조 시도인지 단순 만료인지 서버에서 구분하는 것이 catch를 나눈 목적이다.
+  - B는 원인 구분이 사라진다.
+  - C는 JWT와 상관없는 버그(예: NPE)까지 "잘못된 토큰"으로 숨겨버린다.
+- **적용**
+  - `validateToken`에 `catch (UnsupportedJwtException e)` 추가.
+  - 목록 밖의 JJWT 예외가 같은 문제를 일으키지 않도록, 마지막에 `catch (JwtException e)`를 안전망으로 추가.
+  - catch를 JJWT의 검사 순서(입력 → 형식 → 서명 여부 → 서명 일치 → 만료)대로 정리하고, 원인별 로그 문구를 넣음.
+  - `JwtUtilTest` 11개 모두 통과.
