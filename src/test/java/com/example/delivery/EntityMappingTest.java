@@ -15,7 +15,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,7 +42,6 @@ class EntityMappingTest {
     }
 
     @Test
-    @Rollback(false)
     @DisplayName("회원·메뉴·주문·결제를 여러 개 저장하면 연관관계와 금액이 올바르게 저장된다")
     void saveAllEntities() {
         // given: 회원
