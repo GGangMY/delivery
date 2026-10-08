@@ -45,6 +45,18 @@ class JwtUtilTest {
         assertThat(payload).doesNotContain("password");
     }
 
+    @ParameterizedTest(name = "[{0}] → {1}")
+    @CsvSource(value = {
+            "Bearer abc.def.ghi, abc.def.ghi",
+            "abc.def.ghi, NULL",
+            "Basic abc, NULL",
+            "NULL, NULL"
+    }, nullValues = "NULL")
+    @DisplayName("Authorization 헤더에서 Bearer 접두사를 뗀 토큰만 꺼낸다")
+    void resolveToken(String header, String expected) {
+        assertThat(jwtUtil.resolveToken(header)).isEqualTo(expected);
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidTokens")
     @DisplayName("잘못된 토큰은 예외 없이 false")
