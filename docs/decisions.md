@@ -19,6 +19,7 @@
 | D-07 | 주문 총액: Order 엔티티 생성 시 계산 | 채택 | 2026-10-07 |
 | D-08 | PasswordEncoder를 별도 설정 클래스로 분리 | 채택 | 2026-10-07 |
 | D-09 | JWT subject: 회원 번호 대신 아이디(username) | 채택 | 2026-10-08 |
+| D-10 | DTO: class 대신 record로 통일 | 채택 | 2026-10-11 |
 
 ---
 
@@ -114,3 +115,20 @@
   - `iat`는 민감정보가 아니고, 디코딩했을 때 발급 시각과 유효 기간(`exp - iat`)을 바로 확인할 수 있어 디버깅에 도움이 된다.
 - **검토한 대안**: `sub`는 `userId`로 두고 `username` claim을 추가(발제는 만족하지만 지금 쓸 곳 없는 값이 늘어남)
 - **재검토**: 아이디 변경 기능이 생기거나, 매 요청마다 PK가 필요해지면 `userId`를 claim에 추가하는 방식을 검토한다.
+
+### D-10. DTO: class 대신 record로 통일
+`채택` · 2026-10-11
+
+- **고민**: 요청·응답 DTO를 기존처럼 class + Lombok(`@Getter`, 생성자)으로 둘지, Java record로 바꿀지
+- **결정**: 요청·응답 DTO는 모두 record로 만든다. 엔티티는 class를 유지한다.
+- **이유**
+  - DTO는 값을 담아 옮기기만 하고 중간에 바뀔 일이 없다. record는 필드가 `final`이고 setter가 없어서 불변이 문법으로 보장된다.
+  - 필드·생성자·getter를 직접 쓰지 않아도 된다. (`TokenResponse` 15줄 → 4줄)
+  - Java 21 표준 문법이라 Lombok 없이 동작하고, Jackson(JSON 변환)과 Bean Validation(`@NotBlank` 등)도 record를 지원한다.
+  - 일부만 record로 바꾸면 `getName()`과 `name()`이 섞여서 헷갈리므로, 한 번에 전부 바꾼다.
+- **엔티티는 class 유지**: JPA는 기본 생성자, 값 변경(변경 감지, Soft Delete), 지연 로딩용 프록시(상속)가 필요한데, record는 불변이고 `final`이라 엔티티로 쓸 수 없다.
+- **주의**
+  - 값을 꺼낼 때 `getName()`이 아니라 `name()`을 쓴다.
+  - JSON 키는 컴포넌트 이름 그대로 나간다. 대소문자도 구분하므로 `menuid`/`menuId`처럼 api.md와 철자가 다르면 응답이 어긋난다.
+  - 검증 어노테이션은 컴포넌트에 붙인다. (`record MenuRequest(@NotBlank String name, ...)`)
+- **변경**: User DTO 4개(`SignupRequest`, `LoginRequest`, `UserResponse`, `TokenResponse`)를 record로 전환했다. Menu DTO는 처음부터 record로 만들었다.
