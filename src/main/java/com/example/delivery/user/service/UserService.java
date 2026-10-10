@@ -25,14 +25,14 @@ public class UserService {
 
     public UserResponse signup(SignupRequest signupRequest) {
         // 중복 확인
-        if (userRepository.existsByUsername(signupRequest.getUsername())) {
+        if (userRepository.existsByUsername(signupRequest.username())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다.");
         }
         // 암호화
-        String encoded = passwordEncoder.encode(signupRequest.getPassword());
+        String encoded = passwordEncoder.encode(signupRequest.password());
 
         // DB 저장
-        User user = new User(signupRequest.getUsername(), encoded, signupRequest.getRole());
+        User user = new User(signupRequest.username(), encoded, signupRequest.role());
         userRepository.save(user);
 
         // 요청 응답
@@ -41,10 +41,10 @@ public class UserService {
 
     public TokenResponse login(LoginRequest loginRequest) {
         // 로그인 정보 조회
-        User user = userRepository.findByUsername(loginRequest.getUsername())
+        User user = userRepository.findByUsername(loginRequest.username())
                 .orElseThrow(() ->
                         new ResponseStatusException(HttpStatus.UNAUTHORIZED, LOGIN_FAILED_MESSAGE));
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, LOGIN_FAILED_MESSAGE);
         }
 
